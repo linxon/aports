@@ -1,0 +1,80 @@
+# Contributor: Yury Martynov <email@linxon.ru>
+# Maintainer: Yury Martynov <email@linxon.ru>
+pkgname=i2pd
+pkgver=2.18.0
+pkgrel=1
+pkgdesc="A C++ daemon for accessing the I2P anonymous network"
+url="https://github.com/PurpleI2P/i2pd"
+arch="x86"
+license="GPL"
+options="!check"
+depends="boost openssl"
+depends_dev="boost-dev openssl-dev"
+makedepends="cmake ${depends_dev}"
+install="$pkgname.pre-install $pkgname.post-install"
+source="
+	${pkgname}-${pkgver}.tar.gz::https://github.com/PurpleI2P/i2pd/archive/${pkgver}.tar.gz
+	i2pd.initd
+	i2pd.confd
+	i2pd.logrotate
+	10-fix_installed_components.patch"
+
+builddir="$srcdir/$pkgname-$pkgver/build"
+
+prepare() {
+	cd "$srcdir/$pkgname-$pkgver"
+	for i in $source; do
+		case $i in
+			*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$builddir"
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	
+	CFLAGS="-O2 -pipe"
+	CXXFLAGS="${CFLAGS}"
+	export CFLAGS CXXFLAGS
+
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=False \
+		-DWITH_HARDENING=ON \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		-DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+		${CMAKE_CROSSOPTS}
+	make
+}
+
+package() {
+	cd "$builddir"
+	make DESTDIR="$pkgdir" install
+
+	install -m755 -d "$pkgdir"/etc/i2pd
+	install -m750 -d "$pkgdir"/var/lib/i2pd/
+
+	cp -r "$srcdir/$pkgname-$pkgver/contrib/certificates/" "$pkgdir/var/lib/i2pd/"
+
+	install -m660 -D "$srcdir/$pkgname-$pkgver/contrib/i2pd.conf" \
+		"$pkgdir"/etc/i2pd/i2pd.conf
+	install -m660 -D "$srcdir/$pkgname-$pkgver/contrib/tunnels.conf" \
+		"$pkgdir"/etc/i2pd/tunnels.conf
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname
+}
+
+sha512sums="dc8e0f4df25188e4d72ea6ffa2c36e48a7d2103d025730b40e226ab631724a9a07a4dc03a1a3d08328972c98020c44535661820add80374f1dabdf3fc848ef84  i2pd-2.18.0.tar.gz
+f516b64f1c475e2be72e7f17f4248870a7b8d70fccec503c06bcede43a4dca02c6f9da862a2fba159a1fc54bb5621ddb068564963dee2f8676cda1808d4ca2ec  i2pd.initd
+52d722174f9fff10c9625903143b08ba3860d3b6013688afa73be9a2328f2b111816aabea5b370cd032a6c8f55c52735ac3ffc4bd395f8d40e7b7366504e3cf1  i2pd.confd
+e6080b719cb1616a96b4e4e9ff7074881f88dc699147fd5a201861c5836cf4807a00767a2c370f36e847b0d4ddb2129d8c3c3fc8043325fb8f3d0bc27feca2a3  i2pd.logrotate
+8ea19a9f323482972d23b45d5954f4ae5f6ce99c4d6208741c128f2edd0c5a3c29ed335a1d23fa41808f1123207f6d6717e23bec87e5c6ac4d602ec7cd5ca10e  10-fix_installed_components.patch"

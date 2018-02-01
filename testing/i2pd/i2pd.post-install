@@ -1,0 +1,6 @@
+#!/bin/sh
+
+chown -R root:i2pd /etc/i2pd
+chown -R i2pd:i2pd /var/lib/i2pd
+
+exit 0
