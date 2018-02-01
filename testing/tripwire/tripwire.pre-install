@@ -1,0 +1,8 @@
+#!/bin/sh
+
+mkdir -m 0750 -p /etc/tripwire
+mkdir -m 0750 -p /var/lib/tripwire/report
+chmod 0750 /var/lib/tripwire
+
+exit 0
+

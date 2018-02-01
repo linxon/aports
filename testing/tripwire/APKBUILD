@@ -1,0 +1,66 @@
+# Contributor: Yury Martynov <email@linxon.ru>
+# Maintainer: Yury Martynov <email@linxon.ru>
+pkgname=tripwire
+pkgver=2.4.3.6
+pkgrel=0
+pkgdesc="Open Source File Integrity Checker and IDS"
+url="http://www.tripwire.org/"
+arch="x86"
+license="GPL"
+depends="openssl"
+makedepends=""
+install="$pkgname.pre-install"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/Tripwire/tripwire-open-source/archive/$pkgver.tar.gz
+	twcfg.txt
+	tripwire.crond"
+builddir="$srcdir/$pkgname-open-source-$pkgver"
+
+build() {
+	cd "$builddir"
+	export CPPFLAGS="${CPPFLAGS} -DCONFIG_DIR='\"/etc/tripwire\"' -fno-strict-aliasing"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-openssl \
+		--enable-static
+	make
+}
+
+package() {
+	cd "$builddir"
+	install -m755 -D bin/siggen \
+		"$pkgdir"/usr/sbin/siggen
+	install -m755 -D bin/tripwire \
+		"$pkgdir"/usr/sbin/tripwire
+	install -m755 -D bin/twadmin \
+		"$pkgdir"/usr/sbin/twadmin
+	install -m755 -D bin/twprint \
+		"$pkgdir"/usr/sbin/twprint
+	install -m640 -D "$srcdir"/twcfg.txt \
+		"$pkgdir"/etc/$pkgname/twcfg.txt
+	install -m640 -D policy/twpol-GENERIC.txt \
+		"$pkgdir"/etc/$pkgname/twpol-GENERIC.txt
+	install -m755 -D "$srcdir"/tripwire.crond \
+		"$pkgdir"/etc/periodic/daily/tripwire
+	install -m644 -D COPYING \
+		"$pkgdir"/usr/share/$pkgname/COPYING
+	install -m644 -D ChangeLog \
+		"$pkgdir"/usr/share/$pkgname/ChangeLog
+	install -m644 -D COMMERCIAL \
+		"$pkgdir"/usr/share/$pkgname/MAINTAINERS
+	install -m644 -D COMMERCIAL \
+		"$pkgdir"/usr/share/$pkgname/MAINTAINERS
+	install -m644 -D README.md \
+		"$pkgdir"/usr/share/$pkgname/README.md
+	install -m644 -D policy/policyguide.txt \
+		"$pkgdir"/usr/share/$pkgname/policyguide.txt
+}
+
+sha512sums="4757827b908fd56a014de81609be9cfdf3631d34cbc02214ac800bf6d9c413d85d812bc3211f9dc32ceee97e1f13decd955037a0cbbaf2f8e3020699492bd9bf  tripwire-2.4.3.6.tar.gz
+5902c085e590156e8f02c81ec3fe1d8d0607398264ce0ad7523fdef73a6bd1c52caa5b19bce992c1b034afcf186cd37f998428ddb32c7744a7bb27fcb0470b23  twcfg.txt
+1df37364a84ab26ca0a3f2637e9f4938333c394979c2ccadb69401b7e6a93d03911ce737b25bb6e76c1963e4b7eaffd35b3551aa141b51bc9b3a8a00d9c828cf  tripwire.crond"
