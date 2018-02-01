@@ -34,11 +34,6 @@ build() {
 	if [ "$CBUILD" != "$CHOST" ]; then
 		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
 	fi
-	
-	CFLAGS="-O2 -pipe"
-	CXXFLAGS="${CFLAGS}"
-	export CFLAGS CXXFLAGS
-
 	cmake \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DCMAKE_INSTALL_LIBDIR=lib \
