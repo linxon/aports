@@ -2,13 +2,13 @@
 # Maintainer: Yury Martynov <email@linxon.ru>
 pkgname=i2pd
 pkgver=2.18.0
-pkgrel=1
+pkgrel=0
 pkgdesc="A C++ daemon for accessing the I2P anonymous network"
 url="https://github.com/PurpleI2P/i2pd"
 arch="x86"
 license="GPL"
 options="!check"
-depends="boost openssl"
+depends="boost-program_options boost-filesystem boost-date_time boost-system zlib libgcc libstdc++ openssl"
 depends_dev="boost-dev openssl-dev"
 makedepends="cmake ${depends_dev}"
 install="$pkgname.pre-install $pkgname.post-install"
