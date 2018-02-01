@@ -2,6 +2,7 @@
 # Maintainer: Yury Martynov <email@linxon.ru>
 pkgname=tripwire
 pkgver=2.4.3.6
+_mktwp_ver=1.0.0
 pkgrel=0
 pkgdesc="Open Source File Integrity Checker and IDS"
 url="http://www.tripwire.org/"
@@ -12,9 +13,17 @@ makedepends=""
 install="$pkgname.pre-install"
 source="
 	$pkgname-$pkgver.tar.gz::https://github.com/Tripwire/tripwire-open-source/archive/$pkgver.tar.gz
+	https://iweb.dl.sourceforge.net/project/mktwpol/releases/mktwpol-$_mktwp_ver.tar.gz
 	twcfg.txt
 	tripwire.crond"
 builddir="$srcdir/$pkgname-open-source-$pkgver"
+
+prepare() {
+	cd "$srcdir/mktwpol-$_mktwp_ver"
+	sed -i -e "s:/local::" Makefile
+
+	default_prepare
+}
 
 build() {
 	cd "$builddir"
@@ -59,8 +68,12 @@ package() {
 		"$pkgdir"/usr/share/$pkgname/README.md
 	install -m644 -D policy/policyguide.txt \
 		"$pkgdir"/usr/share/$pkgname/policyguide.txt
+	
+	cd "$srcdir/mktwpol-$_mktwp_ver"
+	make DESTDIR="$pkgdir" install
 }
 
 sha512sums="4757827b908fd56a014de81609be9cfdf3631d34cbc02214ac800bf6d9c413d85d812bc3211f9dc32ceee97e1f13decd955037a0cbbaf2f8e3020699492bd9bf  tripwire-2.4.3.6.tar.gz
+f7a04bb3acdada6407e3e422e26ba2c0c454f10011a2848d0c8e962996e135a381c893f7fcdea67e1a3a23f503eb2071448beca05b7ca90e179d2a28173a973e  mktwpol-1.0.0.tar.gz
 5902c085e590156e8f02c81ec3fe1d8d0607398264ce0ad7523fdef73a6bd1c52caa5b19bce992c1b034afcf186cd37f998428ddb32c7744a7bb27fcb0470b23  twcfg.txt
 1df37364a84ab26ca0a3f2637e9f4938333c394979c2ccadb69401b7e6a93d03911ce737b25bb6e76c1963e4b7eaffd35b3551aa141b51bc9b3a8a00d9c828cf  tripwire.crond"
